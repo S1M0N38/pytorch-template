@@ -1,0 +1,105 @@
+[learner]
+# Number of epochs to train for.
+# Default: 0.
+epochs = 10
+
+# Validate model and log metrics on TensorBoard every x epochs.
+# Always validate after last epoch.
+# Default: epochs (i.e. validate only on last epoch).
+val_period = 1
+
+# Save checkpoint every x epochs. Always save after last epoch.
+# Default: epochs (i.e. save only on last epoch).
+# save_period = 2
+
+# Log training metrics on TensorBoard every x steps.
+# A good value is int(sqrt(baches_per_epoch)).
+# Default: steps (i.e. save only on last step).
+log_period = 10
+
+# Where to save training artefacts (logs, checkpoints, etc.).
+save_path = "experiments/MNIST/"
+
+# Load model from checkpoint for training or testing.
+# Default: None.
+# load_path = "experiments/MNIST/MonthDay_HourMinute_hash/checkpoints/step.pt"
+
+
+[device]
+# Number of GPUs to use.
+# Default: 0 (i.e. use CPU).
+num_gpus = 1
+
+
+[dataloaders.train]
+# Dataloader imported from `dataloaders` module.
+# `dataloaders.train` is the dataloader used for training.
+class = "MNISTTrainDataLoader"
+path = "path/to/datasets/dir/"
+batch_size = 512
+num_workers = 4
+
+[dataloaders.val]
+# Dataloader imported from `dataloaders` module.
+# `dataloaders.val` is the dataloader used for validation during training.
+class = "MNISTValDataLoader"
+path = "path/to/datasets/dir/"
+batch_size = 512
+num_workers = 4
+
+[dataloaders.test]
+# Dataloader imported from `dataloaders` module.
+# `dataloaders.test` is the dataloader used for testing after the training.
+# Sometimes the test datasets is the same as the validation dataset.
+class = "MNISTTestDataLoader"
+path = "path/to/datasets/dir/"
+batch_size = 512
+num_workers = 4
+
+
+[model]
+# Model impoted from `models` module.
+class = "LeNet5"
+
+[loss]
+# Loss imported from `losses` module.
+class = "CrossEntropyLoss"
+
+[optimizer]
+# Optimizer imported from `torch.optim` module.
+# Not interested in exploring with custom optimizers.
+class = "Adam"
+lr = 1e-3
+weight_decay = 0
+amsgrad = true
+
+[lr_scheduler]
+# lr_scheduler imported from `torch.optim.lr_scheduler` module.
+# Not interested in exploring with custom lr_scheduler.
+class = "CosineAnnealingLR"
+T_max = 10
+eta_min = 1e-5
+
+[metrics.train.accuracy-top-1]
+# Metric imported from `metrics` module.
+# `metrics.train` are obtaing from `dataloaders.train` dataloader,
+# and are logged during training. Do not use as proxy for model's performance.
+class = "Accuracy"
+task = "multiclass"
+top_k = 1
+
+[metrics.val.accuracy-top-1]
+# Metric imported from `metrics` module.
+# `metrics.val` are obtaing from `dataloaders.val` dataloader,
+# and are logged during training. Can be use as proxy for model's performance.
+class = "Accuracy"
+task = "multiclass"
+top_k = 1
+
+[metrics.test.accuracy-top-1]
+# Metric imported from `metrics` module.
+# `metrics.test` are obtaing from `dataloaders.test` dataloader.
+# Are the best metrics for extimating model's performance.
+class = "Accuracy"
+task = "multiclass"
+top_k = 1
