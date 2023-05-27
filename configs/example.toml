@@ -1,7 +1,7 @@
 [learner]
 # Number of epochs to train for.
 # Default: 0.
-epochs = 10
+epochs = 5
 
 # Validate model and log metrics on TensorBoard every x epochs.
 # Always validate after last epoch.
@@ -15,7 +15,7 @@ val_period = 1
 # Log training metrics on TensorBoard every x steps.
 # A good value is int(sqrt(baches_per_epoch)).
 # Default: steps (i.e. save only on last step).
-log_period = 10
+log_period = 8
 
 # TODO: add patience for early stopping
 
@@ -38,7 +38,7 @@ num_gpus = 0
 class = "MNISTTrainDataLoader"
 path = "datasets/MNIST" # where to find/download the dataset
 batch_size = 512
-num_workers = 4
+num_workers = 2
 
 [dataloaders.val]
 # Dataloader imported from `dataloaders` module.
@@ -46,7 +46,7 @@ num_workers = 4
 class = "MNISTValDataLoader"
 path = "datasets/MNIST"
 batch_size = 512
-num_workers = 4
+num_workers = 2
 
 [dataloaders.test]
 # Dataloader imported from `dataloaders` module.
@@ -55,7 +55,7 @@ num_workers = 4
 class = "MNISTTestDataLoader"
 path = "datasets/MNIST"
 batch_size = 512
-num_workers = 4
+num_workers = 2
 
 
 [model]
@@ -72,14 +72,12 @@ class = "CrossEntropyLoss"
 # Not interested in exploring with custom optimizers.
 class = "Adam"
 lr = 1e-3
-weight_decay = 0
-amsgrad = true
 
 [lr_scheduler]
 # lr_scheduler imported from `torch.optim.lr_scheduler` module.
 # Not interested in exploring with custom lr_scheduler.
 class = "CosineAnnealingLR"
-T_max = 10
+T_max = 5
 eta_min = 1e-5
 
 [metrics.train.accuracy-top-1]
