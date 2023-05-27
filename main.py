@@ -7,7 +7,7 @@ from datetime import datetime
 import toml
 import torch
 import torchmetrics
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 
 import dataloaders
 import metrics
@@ -48,12 +48,11 @@ class Learner:
         self.train_dataloader = init(dataloaders, self.config["dataloaders"]["train"])
         self.val_dataloader = init(dataloaders, self.config["dataloaders"]["val"])
         self.test_dataloader = init(dataloaders, self.config["dataloaders"]["test"])
-        self.num_classes = len(self.train_dataloader.dataset.classes)
-        self.batches = batches = len(self.train_dataloader)
+        self.batches = len(self.train_dataloader)
 
         # [learner]
         self.epochs, self.epoch = self.config["learner"]["epochs"], 0
-        self.steps, self.step = self.epochs * batches, 0
+        self.steps, self.step = self.epochs * self.batches, 0
         self.val_period = self.config["learner"].get("val_period", self.epochs)
         self.save_period = self.config["learner"].get("save_period", self.epochs)
         self.log_period = self.config["learner"].get("log_period", self.steps)
@@ -67,7 +66,6 @@ class Learner:
         self.device = torch.device("cuda:0" if self.gpus else "cpu")
 
         # [model]
-        self.config["model"]["num_classes"] = self.num_classes
         self.model = init(models, self.config["model"]).to(self.device)
         if len(self.gpus) > 1:
             self.model = torch.nn.DataParallel(self.model, device_ids=self.gpus)
@@ -87,21 +85,24 @@ class Learner:
         self.lr_scheduler = init(torch.optim.lr_scheduler, self.config["lr_scheduler"])
 
         # [metrics]
-        self.train_metrics = {}
-        for name, metric in self.config["metrics"]["train"].items():
-            metric["num_classes"] = self.num_classes
-            self.train_metrics[name] = init(metrics, metric).to(self.device)
-        self.train_metrics = torchmetrics.MetricCollection(self.train_metrics)
-        self.val_metrics = {}
-        for name, metric in self.config["metrics"]["val"].items():
-            metric["num_classes"] = self.num_classes
-            self.val_metrics[name] = init(metrics, metric).to(self.device)
-        self.val_metrics = torchmetrics.MetricCollection(self.val_metrics)
-        self.test_metrics = {}
-        for name, metric in self.config["metrics"]["test"].items():
-            metric["num_classes"] = self.num_classes
-            self.test_metrics[name] = init(metrics, metric).to(self.device)
-        self.test_metrics = torchmetrics.MetricCollection(self.test_metrics)
+        self.train_metrics = torchmetrics.MetricCollection(
+            {
+                name: init(metrics, metric).to(self.device)
+                for name, metric in self.config["metrics"]["train"].items()
+            }
+        )
+        self.val_metrics = torchmetrics.MetricCollection(
+            {
+                name: init(metrics, metric).to(self.device)
+                for name, metric in self.config["metrics"]["val"].items()
+            }
+        )
+        self.test_metrics = torchmetrics.MetricCollection(
+            {
+                name: init(metrics, metric).to(self.device)
+                for name, metric in self.config["metrics"]["test"].items()
+            }
+        )
 
         # Hyperparameters for logging
         self.hparams = {
@@ -156,6 +157,7 @@ class Learner:
             self.epoch += 1
             self._log("info", "train")
             self.lr_scheduler.step()
+        return False
 
     def _val(self):
         self.model = self.model.eval()
