@@ -1,4 +1,4 @@
-name: Python 3.10 Workflow
+name: Train on MNSIT
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3.5.2
 
       - name: Set up Python 3.10
@@ -21,14 +21,26 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Cache dependencies
-        uses: actions/cache@v1.2.1
+      - name: Cache Python dependencies
+        uses: actions/cache@v3.2.6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Python script
-        run: python main.py configs/example.toml
+      - name: Run script and cache datasets directory
+        run: |
+          python main.py configs/example.toml
+          mv datasets ${{ runner.workspace }}/.datasets
+        env:
+          CACHE_KEY: ${{ runner.os }}-datasets-${{ hashFiles('${{ runner.workspace }}/.datasets') }}
+
+      - name: Cache datasets directory
+        uses: actions/cache@v3.2.6
+        with:
+          path: ${{ runner.workspace }}/.datasets
+          key: ${{ env.CACHE_KEY }}
+          restore-keys: ${{ runner.os }}-datasets-
