@@ -34,13 +34,13 @@ jobs:
       - name: Run script and cache datasets directory
         run: |
           python main.py configs/example.toml
-          mv datasets ${{ runner.workspace }}/.datasets
+          mv datasets ${{ runner.workspace }}/datasets
         env:
-          CACHE_KEY: ${{ runner.os }}-datasets-${{ hashFiles('${{ runner.workspace }}/.datasets') }}
+          CACHE_KEY: ${{ runner.os }}-datasets-${{ hashFiles('${{ runner.workspace }}/datasets') }}
 
       - name: Cache datasets directory
         uses: actions/cache@v3.2.6
         with:
-          path: ${{ runner.workspace }}/.datasets
+          path: ${{ runner.workspace }}/datasets
           key: ${{ env.CACHE_KEY }}
           restore-keys: ${{ runner.os }}-datasets-
