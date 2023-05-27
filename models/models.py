@@ -1,6 +1,11 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Define here models architecture
+# Implement models as pytorch nn.Module
+
+# Here we define a custom LeNet-5 architecture for the MNIST dataset.
+
 
 class LeNet5(nn.Module):
     """
@@ -54,3 +59,41 @@ class LeNet5(nn.Module):
         for s in size:
             num_features *= s
         return num_features
+
+
+# # You can also use models from torchvision or from torch.hub.
+# # You can load a pretraind model and modify the last layer to fit your task.
+# # Here is an example where we modify last layer of EfficientNetB0 to be the
+# # same as the num_classes of our task.
+# #
+# # So in the config file we can specifiy the number of classes,
+# # the dropout rate on last layer and if we want to initialize the models using
+# # pretrained weights (check out torchvision docs for a list of pretraind models):
+# #
+# # [model]
+# # class = "EfficientNetB0"
+# # num_classes = 100
+# # weights = "IMAGENET1K_V1" # or comment this line to not use pretrained weights
+#
+# import torchvision
+#
+#
+# class EfficientNetB0(nn.Module):
+#     def __init__(
+#         self,
+#         num_classes: int = 1000,
+#         weights: str | None = None,
+#         dropout: float = 0,
+#     ):
+#         super().__init__()
+#         self.model = torchvision.models.efficientnet_b0(weights=weights)
+#
+#         # For the EfficientNet we need to modify .classifier, for other models
+#         # there is something else to change (refer to torchvision docs).
+#         self.model.classifier = nn.Sequential(
+#             nn.Dropout(dropout, inplace=True),
+#             nn.Linear(1280, num_classes),
+#         )
+#
+#     def forward(self, x):
+#         return self.model(x)
