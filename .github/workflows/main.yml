@@ -1,0 +1,12 @@
+name: train
+on: [push]
+jobs:
+  train-lenet-on-MNIST:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v4.6.1
+        with:
+          python-version: 3.10
+          cache: pip
+      - run: python main.py config/example.toml
