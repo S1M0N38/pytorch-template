@@ -17,6 +17,8 @@ val_period = 1
 # Default: steps (i.e. save only on last step).
 log_period = 10
 
+# TODO: add patience for early stopping
+
 # Where to save training artefacts (logs, checkpoints, etc.).
 save_path = "experiments/MNIST/"
 
@@ -26,16 +28,15 @@ save_path = "experiments/MNIST/"
 
 
 [device]
-# Number of GPUs to use.
-# Default: 0 (i.e. use CPU).
-num_gpus = 1
+# Number of GPUs to use (0, 1, 2, ...). Default: 0 (i.e. use CPU).
+num_gpus = 0
 
 
 [dataloaders.train]
 # Dataloader imported from `dataloaders` module.
 # `dataloaders.train` is the dataloader used for training.
 class = "MNISTTrainDataLoader"
-path = "path/to/datasets/dir/"
+path = "datasets/MNIST" # where to find/download the dataset
 batch_size = 512
 num_workers = 4
 
@@ -43,7 +44,7 @@ num_workers = 4
 # Dataloader imported from `dataloaders` module.
 # `dataloaders.val` is the dataloader used for validation during training.
 class = "MNISTValDataLoader"
-path = "path/to/datasets/dir/"
+path = "datasets/MNIST"
 batch_size = 512
 num_workers = 4
 
@@ -52,7 +53,7 @@ num_workers = 4
 # `dataloaders.test` is the dataloader used for testing after the training.
 # Sometimes the test datasets is the same as the validation dataset.
 class = "MNISTTestDataLoader"
-path = "path/to/datasets/dir/"
+path = "datasets/MNIST"
 batch_size = 512
 num_workers = 4
 
@@ -60,6 +61,7 @@ num_workers = 4
 [model]
 # Model impoted from `models` module.
 class = "LeNet5"
+num_classes = 10
 
 [loss]
 # Loss imported from `losses` module.
@@ -86,6 +88,7 @@ eta_min = 1e-5
 # and are logged during training. Do not use as proxy for model's performance.
 class = "Accuracy"
 task = "multiclass"
+num_classes = 10
 top_k = 1
 
 [metrics.val.accuracy-top-1]
@@ -94,6 +97,7 @@ top_k = 1
 # and are logged during training. Can be use as proxy for model's performance.
 class = "Accuracy"
 task = "multiclass"
+num_classes = 10
 top_k = 1
 
 [metrics.test.accuracy-top-1]
@@ -102,4 +106,5 @@ top_k = 1
 # Are the best metrics for extimating model's performance.
 class = "Accuracy"
 task = "multiclass"
+num_classes = 10
 top_k = 1
