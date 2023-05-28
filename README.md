@@ -16,6 +16,8 @@
   </a>
 </div>
 
+-------------------------------------------------------------------------------
+
 There are many components involved in training a PyTorch model, including model
 architectures, loss functions, hyperparameters, optimizers, dataloaders, and
 all of their arguments.
