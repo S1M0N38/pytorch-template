@@ -1,6 +1,10 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+
 <div align="center">
   <h1>[🔥]</h1>
-  <p><em>a <a href="https://pytorch.org/">PyTorch</a> template using <a href="https://toml.io/">TOML</a></em></p>
+  <p><em><a href="https://pytorch.org/">PyTorch</a> template with <a href="https://toml.io/">TOML</a></em></p>
   
   <a href="https://github.com/S1M0N38/pytorch-template/actions/workflows/main.yml">
     <img alt="Status" src="https://img.shields.io/github/actions/workflow/status/S1M0N38/pytorch-template/main.yml?label=train&amp;style=for-the-badge">
