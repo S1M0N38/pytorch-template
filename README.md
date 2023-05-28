@@ -78,7 +78,7 @@ as model architecture.
 You can easily understand how TOML file is loaded by `Learner` by comparing
 `configs/example.toml` and `Learner.__init__()` in `main.py`
 
-## Q & A
+## Q&A
 
 - **Is \[🔥\] stable?**
   *No, I'm tweaking this template based on my experience and needs, so expect
@@ -86,14 +86,21 @@ You can easily understand how TOML file is loaded by `Learner` by comparing
   to fit your needs.*
 
 - **Why the name \[🔥\]?**
-  It's a combination of the PyTorch fire and the square brackets defining
-  sections in a TOML file.
+  *It's a combination of the PyTorch fire and the square brackets defining
+  sections in a TOML file.*
 
 - **Why TOML?**
-  I think it's simpler than [YAML](https://en.wikipedia.org/wiki/YAML) and best
+  *I think it's simpler than [YAML](https://en.wikipedia.org/wiki/YAML) and best
   than [JSON](https://en.wikipedia.org/wiki/JSON) for configuration. Moreover the
   python ecosystem starts to embracing:
   [tomllib](https://docs.python.org/3/library/tomllib.html) in the standard
   library and
   [pyproject.toml](https://snarky.ca/what-the-heck-is-pyproject-toml/) for python
-  project configuration.
+  project configuration.*
+
+## Similar project
+- [victoresque/pytorch-template](https://github.com/victoresque/pytorch-template):
+  PyTorch deep learning projects made easy.
+- [moemen95/Pytorch-Project-Template](https://github.com/moemen95/Pytorch-Project-Template):
+  A scalable template for PyTorch projects, with examples in Image Segmentation,
+  Object classification, GANs and Reinforcement Learning. 
