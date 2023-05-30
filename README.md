@@ -42,10 +42,8 @@ the boilerplate code) and dynamically load classes and theirs arguments using
 the `init` function:
 
 ```python
-def init(module: object, name: dict):
-    class_name = name["class"]
-    del name["class"]
-    class_args = name
+def init(module: object, class_args: dict):
+    class_name = class_args.pop("class")
     return getattr(module, class_name)(**class_args)
 ```
 
@@ -75,8 +73,8 @@ num_classes = 10
 This configuration section will initialize `LeNet5` class defined in `models/models.py`
 as model architecture.
 
-You can easily understand how TOML file is loaded by `Learner` by comparing
-`configs/example.toml` and `Learner.__init__()` in `main.py`
+You can easily understand how TOML file is loaded by `Trainer` and `Tester` by
+comparing `configs/example.toml` and `__init__()` methods in `main.py`
 
 ## Q&A
 
@@ -98,9 +96,10 @@ You can easily understand how TOML file is loaded by `Learner` by comparing
   [pyproject.toml](https://snarky.ca/what-the-heck-is-pyproject-toml/) for python
   project configuration.*
 
-## Similar project
+## Similar projects
+
 - [victoresque/pytorch-template](https://github.com/victoresque/pytorch-template):
   PyTorch deep learning projects made easy.
 - [moemen95/Pytorch-Project-Template](https://github.com/moemen95/Pytorch-Project-Template):
   A scalable template for PyTorch projects, with examples in Image Segmentation,
-  Object classification, GANs and Reinforcement Learning. 
+  Object classification, GANs and Reinforcement Learning.
