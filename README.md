@@ -37,9 +37,9 @@ in a single PyTorch file.
 
 ## How it works
 
-TOML file is read by the `Learner` class (the unique class that implement all
-the boilerplate code) and dynamically load classes and theirs arguments using
-the `init` function:
+TOML file is read by the `Trainer` class (the unique class that implement all
+the boilerplate code for training) and dynamically load classes and theirs
+arguments using the `init` function:
 
 ```python
 def init(module: object, class_args: dict):
