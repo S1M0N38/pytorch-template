@@ -68,6 +68,15 @@ path = "datasets/MNIST"
 batch_size = 512
 num_workers = 2
 
+[dataloaders.test]
+# Dataloader imported from `dataloaders` module.
+# `dataloaders.test` is the dataloader used for testing after the training.
+# Sometimes the test datasets is the same as the validation dataset.
+class = "MNISTTestDataLoader"
+path = "datasets/MNIST"
+batch_size = 512
+num_workers = 2
+
 [metrics.train.accuracy-top-1]
 # Metric imported from `metrics` module.
 # `metrics.train` are obtaing from `dataloaders.train` dataloader,
@@ -94,3 +103,12 @@ class = "Accuracy"
 task = "multiclass"
 num_classes = 10
 top_k = 5
+
+[metrics.test.accuracy-top-1]
+# Metric imported from `metrics` module.
+# `metrics.test` are obtaing from `dataloaders.test` dataloader.
+# Are the best metrics for extimating model's performance.
+class = "Accuracy"
+task = "multiclass"
+num_classes = 10
+top_k = 1
