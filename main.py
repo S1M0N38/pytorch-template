@@ -205,13 +205,14 @@ class Trainer:
                     break
 
                 # Trigger early stopping for metrics_val
+                early_stopping = False
                 for metric, metric_best_k_last in metrics_best_k_last.items():
                     if metric_best_k_last - 1 > self.patience.get(metric, self.epochs):
                         self.logger.info(f"Early stopping trigger by '{metric}'.")
+                        early_stopping = True
                         break
-                else:
-                    continue
-                break
+                if early_stopping:
+                    break
 
             if self.step == self.steps:
                 break
