@@ -221,10 +221,56 @@ class Trainer:
         self._save("last.pt")
 
 
-def init(module: object, name: dict):
-    class_name = name["class"]
-    del name["class"]
-    class_args = name
+class Tester:
+    def __init__(self, config: dict, checkpoint: Path) -> None:
+        self.config = copy.deepcopy(config)
+        self.gpus = list(range(config.get("num_gpus", 0)))
+        self.device = torch.device("cuda:0" if self.gpus else "cpu")
+
+        # [dataloaders]
+        self.dataloader_test = init(dataloaders, config["dataloaders"]["test"])
+
+        # [loss]
+        self.loss = init(losses, config["loss"]).to(self.device)
+        self.loss_test = torchmetrics.MeanMetric().to(self.device)
+
+        # [metrics]
+        self.metrics_test = torchmetrics.MetricCollection(
+            {
+                name: init(metrics, metric).to(self.device)
+                for name, metric in config["metrics"]["test"].items()
+            }
+        )
+
+        # [model]
+        self.model = init(models, config["model"]).to(self.device)
+        if len(self.gpus) > 1:
+            self.model = torch.nn.DataParallel(self.model, device_ids=self.gpus)
+
+        self._load(checkpoint)
+
+    def _load(self, path: Path) -> None:
+        path = path.resolve()
+        checkpoint = torch.load(path)
+        self.model.load_state_dict(checkpoint["model"])
+
+    def test(self) -> dict[str, torch.Tensor]:
+        self.model = self.model.eval()
+        with torch.no_grad():
+            for inputs, targets in self.dataloader_test:
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
+                outputs = self.model(inputs)
+                loss = self.loss(outputs, targets)
+                self.metrics_test(outputs, targets)
+                self.loss_test(loss)
+
+            metrics = self.metrics_test.compute()
+            metrics["loss"] = self.loss_test.compute()
+        return metrics
+
+
+def init(module: object, class_args: dict):
+    class_name = class_args.pop("class")
     return getattr(module, class_name)(**class_args)
 
 
@@ -253,5 +299,9 @@ if __name__ == "__main__":
     print(trainer)
     print(f"Progress at {trainer.path / 'trainer.log'}")
     print("Training ...")
-
     trainer.train()
+
+    tester = Tester(trainer.config, trainer.path / "checkpoints" / "last.pt")
+    print("Testing ...")
+    results = tester.test()
+    print(results)
