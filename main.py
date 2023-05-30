@@ -1,5 +1,5 @@
-import sys
 import copy
+import sys
 import logging
 from hashlib import sha256
 from pathlib import Path
@@ -17,31 +17,32 @@ import losses
 
 
 class Trainer:
-    def __init__(self, experiemnt: str, config: dict):
-        self.config = copy.deepcopy(config)
+    def __init__(self, config: dict, experiemnt: str):
+        cfg = copy.deepcopy(config)
+        self.config = config
 
         # [dataloaders]
-        self.dataloader_train = init(dataloaders, config["dataloaders"]["train"])
-        self.dataloader_val = init(dataloaders, config["dataloaders"]["val"])
+        self.dataloader_train = init(dataloaders, cfg["dataloaders"]["train"])
+        self.dataloader_val = init(dataloaders, cfg["dataloaders"]["val"])
 
-        self.epochs, self.epoch = config.get("epochs", 0), 0
+        self.epochs, self.epoch = cfg.get("epochs", 0), 0
         self.steps, self.step = self.epochs * len(self.dataloader_train), 0
-        self.period_val = config.get("validate", self.epochs)
-        self.period_log = config.get("log", self.steps)
+        self.period_val = cfg.get("validate", self.epochs)
+        self.period_log = cfg.get("log", self.steps)
 
-        self.gpus = list(range(config.get("num_gpus", 0)))
+        self.gpus = list(range(cfg.get("num_gpus", 0)))
         self.device = torch.device("cuda:0" if self.gpus else "cpu")
 
         # [patience]
-        self.patience = config.get("patience", {})
+        self.patience = cfg.get("patience", {})
 
         # [model]
-        self.model = init(models, config["model"]).to(self.device)
+        self.model = init(models, cfg["model"]).to(self.device)
         if len(self.gpus) > 1:
             self.model = torch.nn.DataParallel(self.model, device_ids=self.gpus)
 
         # [loss]
-        self.loss = init(losses, config["loss"])
+        self.loss = init(losses, cfg["loss"])
         self.loss_train = torchmetrics.MeanMetric().to(self.device)
         self.loss_val = torchmetrics.MetricTracker(
             torchmetrics.MeanMetric().to(self.device),
@@ -49,31 +50,31 @@ class Trainer:
         )
 
         # [optimizer]
-        config["optimizer"]["params"] = self.model.parameters()
-        self.optimizer = init(torch.optim, config["optimizer"])
+        cfg["optimizer"]["params"] = self.model.parameters()
+        self.optimizer = init(torch.optim, cfg["optimizer"])
 
         # [lr_scheduler]
-        config["lr_scheduler"]["optimizer"] = self.optimizer
-        self.lr_scheduler = init(torch.optim.lr_scheduler, config["lr_scheduler"])
+        cfg["lr_scheduler"]["optimizer"] = self.optimizer
+        self.lr_scheduler = init(torch.optim.lr_scheduler, cfg["lr_scheduler"])
 
         # [metrics]
         self.metrics_train = torchmetrics.MetricCollection(
             {
                 name: init(metrics, metric).to(self.device)
-                for name, metric in config["metrics"]["train"].items()
+                for name, metric in cfg["metrics"]["train"].items()
             }
         )
         self.metrics_val = torchmetrics.MetricTracker(
             torchmetrics.MetricCollection(
                 {
                     name: init(metrics, metric).to(self.device)
-                    for name, metric in config["metrics"]["val"].items()
+                    for name, metric in cfg["metrics"]["val"].items()
                 }
             )
         )
 
         # Track and save results
-        self.path = Path(config.get("path", ".")) / experiemnt
+        self.path = Path(cfg.get("path", ".")) / experiemnt
         self.writer = SummaryWriter(self.path / "runs")
         self.logger = init_logger(self.path / "trainer.log")
         (self.path / "checkpoints").mkdir()
@@ -223,31 +224,36 @@ class Trainer:
 
 class Tester:
     def __init__(self, config: dict, checkpoint: Path) -> None:
-        self.config = copy.deepcopy(config)
-        self.gpus = list(range(config.get("num_gpus", 0)))
-        self.device = torch.device("cuda:0" if self.gpus else "cpu")
+        cfg = copy.deepcopy(config)
+        self.config = config
 
         # [dataloaders]
-        self.dataloader_test = init(dataloaders, config["dataloaders"]["test"])
+        self.dataloader_test = init(dataloaders, cfg["dataloaders"]["test"])
+
+        self.gpus = list(range(cfg.get("num_gpus", 0)))
+        self.device = torch.device("cuda:0" if self.gpus else "cpu")
 
         # [loss]
-        self.loss = init(losses, config["loss"]).to(self.device)
+        self.loss = init(losses, cfg["loss"]).to(self.device)
         self.loss_test = torchmetrics.MeanMetric().to(self.device)
 
         # [metrics]
         self.metrics_test = torchmetrics.MetricCollection(
             {
                 name: init(metrics, metric).to(self.device)
-                for name, metric in config["metrics"]["test"].items()
+                for name, metric in cfg["metrics"]["test"].items()
             }
         )
 
         # [model]
-        self.model = init(models, config["model"]).to(self.device)
+        self.model = init(models, cfg["model"]).to(self.device)
         if len(self.gpus) > 1:
             self.model = torch.nn.DataParallel(self.model, device_ids=self.gpus)
 
         self._load(checkpoint)
+
+    def __str__(self) -> str:
+        return toml.dumps(self.config)
 
     def _load(self, path: Path) -> None:
         path = path.resolve()
@@ -293,15 +299,15 @@ def generate_experiment_name(config: dict):
 
 if __name__ == "__main__":
     config = toml.load(Path(sys.argv[1]))
-    experiemnt = generate_experiment_name(config)
-    trainer = Trainer(experiemnt, config)
+    experiement = generate_experiment_name(config)
 
+    trainer = Trainer(config, experiement)
     print(trainer)
     print(f"Progress at {trainer.path / 'trainer.log'}")
     print("Training ...")
     trainer.train()
 
-    tester = Tester(trainer.config, trainer.path / "checkpoints" / "last.pt")
+    tester = Tester(config, trainer.path / "checkpoints" / "last.pt")
     print("Testing ...")
     results = tester.test()
     print(results)
