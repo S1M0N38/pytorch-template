@@ -78,8 +78,11 @@ class Trainer:
         self.writer = SummaryWriter(self.path / "runs")
         self.logger = init_logger(self.path / "trainer.log")
         (self.path / "checkpoints").mkdir()
-        with open(self.path / "trainer.toml", "w") as f:
+        with open(self.path / "config.toml", "w") as f:
             toml.dump(self.config, f)
+
+        self.logger.info(f"Trainer initialized using {self.path / 'trainer.toml'}")
+        self.logger.debug(f"Using {self.device} as device.")
 
     def __str__(self):
         return toml.dumps(self.config)
@@ -111,6 +114,7 @@ class Trainer:
             self.epoch += 1
             self._log("info", "train")
             self.lr_scheduler.step()
+            self.logger.debug(f"Update LR: {self.lr_scheduler.get_last_lr()[0]:.3e}")
 
     def _val(self):
         self.model = self.model.eval()
@@ -178,24 +182,26 @@ class Trainer:
                 self._val()
 
                 # Find the index (from the end) of the best step for loss_val
-                _, loss_best_step = self.loss_val.best_metric(return_step=True)
-                loss_best_k_last = self.loss_val.n_steps - loss_best_step
+                _, step = self.loss_val.best_metric(return_step=True)  # type: ignore
+                loss_best_k_last = self.loss_val.n_steps - step  # type: ignore
 
                 # Find the index (from the end) of the bests steps for metrics_val
-                _, metrics_best_steps = self.metrics_val.best_metric(return_step=True)
+                _, step = self.metrics_val.best_metric(return_step=True)  # type: ignore
                 metrics_best_k_last = {
-                    metric: self.metrics_val.n_steps - metric_best_step
-                    for metric, metric_best_step in metrics_best_steps.items()
+                    metric: self.metrics_val.n_steps - metric_best_step  # type: ignore
+                    for metric, metric_best_step in step.items()  # type: ignore
                 }
 
                 # Save checkpoint with best loss_val
                 if loss_best_k_last == 1:
                     self._save("loss_val.pt")
+                    self.logger.debug("Saved checkpoint with best 'loss_val'.")
 
                 # Save checkpoints with best metrics_val
                 for metric, metric_best_k_last in metrics_best_k_last.items():
                     if metric_best_k_last == 1:
                         self._save(f"{metric}.pt")
+                        self.logger.debug(f"Saved checkpoint with best '{metric}'.")
 
                 # Remove old checkpoints that have no symlink that points to them
                 self._clean()
@@ -216,14 +222,16 @@ class Trainer:
                     break
 
             if self.step == self.steps:
+                self.logger.info("Training completed.")
                 break
 
         # Load last checkpoint
         self._save("last.pt")
+        self.logger.debug("Saved checkpoint with last step.")
 
 
 class Tester:
-    def __init__(self, config: dict, checkpoint: Path) -> None:
+    def __init__(self, config: dict, experiemnt: str, checkpoint: Path) -> None:
         cfg = copy.deepcopy(config)
         self.config = config
 
@@ -232,6 +240,11 @@ class Tester:
 
         self.gpus = list(range(cfg.get("num_gpus", 0)))
         self.device = torch.device("cuda:0" if self.gpus else "cpu")
+
+        # [model]
+        self.model = init(models, cfg["model"]).to(self.device)
+        if len(self.gpus) > 1:
+            self.model = torch.nn.DataParallel(self.model, device_ids=self.gpus)
 
         # [loss]
         self.loss = init(losses, cfg["loss"]).to(self.device)
@@ -245,10 +258,11 @@ class Tester:
             }
         )
 
-        # [model]
-        self.model = init(models, cfg["model"]).to(self.device)
-        if len(self.gpus) > 1:
-            self.model = torch.nn.DataParallel(self.model, device_ids=self.gpus)
+        # Track and save results
+        self.path = Path(cfg.get("path", ".")) / experiemnt
+        self.logger = init_logger(self.path / "tester.log")
+        self.logger.info(f"Tester initialized using {self.path / 'config.toml'}")
+        self.logger.debug(f"Using {self.device} as device.")
 
         self._load(checkpoint)
 
@@ -303,11 +317,12 @@ if __name__ == "__main__":
 
     trainer = Trainer(config, experiement)
     print(trainer)
-    print(f"Progress at {trainer.path / 'trainer.log'}")
+    print(f"Progress at {trainer.path.parent / '*' / 'trainer.log'}")
     print("Training ...")
     trainer.train()
 
-    tester = Tester(config, trainer.path / "checkpoints" / "last.pt")
+    tester = Tester(config, experiement, trainer.path / "checkpoints" / "last.pt")
+    print(f"Progress at {trainer.path.parent / '*' / 'trainer.log'}")
     print("Testing ...")
     results = tester.test()
     print(results)
