@@ -1,9 +1,9 @@
 import copy
-import sys
 import logging
+import sys
+from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
-from datetime import datetime
 
 import toml
 import torch
@@ -11,9 +11,9 @@ import torchmetrics
 from torch.utils.tensorboard.writer import SummaryWriter
 
 import dataloaders
+import losses
 import metrics
 import models
-import losses
 
 
 class Trainer:
@@ -231,7 +231,7 @@ class Trainer:
 
 
 class Tester:
-    def __init__(self, config: dict, experiemnt: str, checkpoint: Path) -> None:
+    def __init__(self, config: dict, experiemnt: str) -> None:
         cfg = copy.deepcopy(config)
         self.config = config
 
@@ -264,18 +264,17 @@ class Tester:
         self.logger.info(f"Tester initialized using {self.path / 'config.toml'}")
         self.logger.debug(f"Using {self.device} as device.")
 
-        self._load(checkpoint)
-
     def __str__(self) -> str:
         return toml.dumps(self.config)
 
-    def _load(self, path: Path) -> None:
-        path = path.resolve()
-        checkpoint = torch.load(path)
+    def load(self, path: Path):
+        checkpoint = torch.load(path.resolve())
         self.model.load_state_dict(checkpoint["model"])
+        return self
 
     def test(self) -> dict[str, torch.Tensor]:
         self.model = self.model.eval()
+        self.logger.info("Start testing.")
         with torch.no_grad():
             for inputs, targets in self.dataloader_test:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
@@ -286,6 +285,8 @@ class Tester:
 
             metrics = self.metrics_test.compute()
             metrics["loss"] = self.loss_test.compute()
+
+        self.logger.info("Testing completed.")
         return metrics
 
 
@@ -295,7 +296,7 @@ def init(module: object, class_args: dict):
 
 
 def init_logger(path: Path):
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(path.stem)
     logger.setLevel(logging.DEBUG)
     fmt = logging.Formatter("%(levelname)8s - %(asctime)s - %(message)s")
     fh = logging.FileHandler(path)
@@ -321,8 +322,9 @@ if __name__ == "__main__":
     print("Training ...")
     trainer.train()
 
-    tester = Tester(config, experiement, trainer.path / "checkpoints" / "last.pt")
-    print(f"Progress at {trainer.path.parent / '*' / 'trainer.log'}")
+    tester = Tester(config, experiement)
+    tester.load(tester.path / "checkpoints" / "last.pt")
+    print(f"Progress at {trainer.path.parent / '*' / 'tester.log'}")
     print("Testing ...")
     results = tester.test()
     print(results)
