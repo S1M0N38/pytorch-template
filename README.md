@@ -2,7 +2,7 @@
   <h1>[🔥]</h1>
   <p><em><a href="https://pytorch.org/">PyTorch</a> template with <a href="https://toml.io/">TOML</a></em></p>
 
-  <a href="https://github.com/S1M0N38/pytorch-template/actions/workflows/main.yml">
+<a href="https://github.com/S1M0N38/pytorch-template/actions/workflows/main.yml">
     <img alt="Status" src="https://img.shields.io/github/actions/workflow/status/S1M0N38/pytorch-template/main.yml?label=train&amp;style=for-the-badge">
   </a>
   <a>
@@ -16,29 +16,29 @@
   </a>
 </div>
 
--------------------------------------------------------------------------------
+______________________________________________________________________
 
 There are many components involved in training a PyTorch model, including model
 architectures, loss functions, hyperparameters, optimizers, dataloaders, and
 all of their arguments.
 
-A standard training loop requires a boilerplate code to connect all of
+A standard training loop requires boilerplate code to connect all of
 these components, including training and validation steps, saving and loading
 checkpoints, and tracking metrics.
 
-To simplify this process, \[🔥\] template can be used to specify the former
-components using a TOML file, while implementing the latter as a minimal class
+To simplify this process, a \[🔥\] template can be used to specify the aforementioned
+components using a TOML file, while implementing the remaining ones as a minimal class
 in a single PyTorch file.
 
 ## Usage
 
-1. Define the configuration in a TOML (e.g. `configs/example.toml`)
-2. Train, Validate and Test the model with `python main.py configs/example.toml`
+1. Define the configuration in a TOML file (e.g. `configs/example.toml`)
+1. Train, Validate and Test the model with `python main.py configs/example.toml`
 
 ## How it works
 
-TOML file is read by the `Trainer` class (the unique class that implement all
-the boilerplate code for training) and dynamically load classes and theirs
+A TOML file is read by the `Trainer` class (the unique class that implements all
+the boilerplate code for training) and dynamically loads classes and their
 arguments using the `init` function:
 
 ```python
@@ -56,9 +56,9 @@ lr = 1e-3
 weight_decay=0
 ```
 
-From the `[optimizer]` section, \[🔥\] use the `class` to create a new instance
-of `torch.optim.Adam` optimizer and pass all other values as arguments to the
-new object (here `lr` and `weight_decay`). Optimizer also have `parameters` as
+From the `[optimizer]` section, \[🔥\] uses the `class` to create a new instance
+of a `torch.optim.Adam` optimizer and passes all other values as arguments to the
+new object (here `lr` and `weight_decay`). Optimizer also has `parameters` as a
 positional argument but this is already provided by the code in the `Learner`
 class.
 
@@ -71,29 +71,29 @@ num_classes = 10
 ```
 
 This configuration section will initialize `LeNet5` class defined in `models/models.py`
-as model architecture.
+as the model architecture.
 
-You can easily understand how TOML file is loaded by `Trainer` and `Tester` by
-comparing `configs/example.toml` and `__init__()` methods in `main.py`
+You can easily understand how a TOML file is loaded by `Trainer` and `Tester` by
+comparing `configs/example.toml` and `__init__()` methods in `main.py`.
 
 ## Q&A
 
 - **Is \[🔥\] stable?**
   *No, I'm tweaking this template based on my experience and needs, so expect
-  breaking changes. Nevertheless this is a template so you have heavily to modify
-  to fit your needs.*
+  breaking changes. Nevertheless, this is a template so you might have to heavily modify
+  it to fit your needs.*
 
 - **Why the name \[🔥\]?**
-  *It's a combination of the PyTorch fire and the square brackets defining
+  *It's a combination of the PyTorch flame and the square brackets defining
   sections in a TOML file.*
 
 - **Why TOML?**
-  *I think it's simpler than [YAML](https://en.wikipedia.org/wiki/YAML) and best
-  than [JSON](https://en.wikipedia.org/wiki/JSON) for configuration. Moreover the
-  python ecosystem starts to embracing:
+  *I think it's simpler than [YAML](https://en.wikipedia.org/wiki/YAML) and better
+  than [JSON](https://en.wikipedia.org/wiki/JSON) for configuration. Moreover, the
+  Python ecosystem starts to embrace it:
   [tomllib](https://docs.python.org/3/library/tomllib.html) in the standard
   library and
-  [pyproject.toml](https://snarky.ca/what-the-heck-is-pyproject-toml/) for python
+  [pyproject.toml](https://snarky.ca/what-the-heck-is-pyproject-toml/) for Python
   project configuration.*
 
 ## Similar projects
