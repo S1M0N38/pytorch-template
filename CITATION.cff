@@ -6,4 +6,5 @@ authors:
   orcid: "https://orcid.org/0009-0007-1960-1665"
 title: "PyTorch Template with TOML"
 version: 0.1.0
+date-released: 2023-05-31
 url: "https://github.com/S1M0N38/pytorch-template"
