@@ -1,2 +1,5 @@
 experiments/
 datasets/
+
+# Mac OS
+.DS_Store
