@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Bertolotto"
+  given-names: "Simone"
+  orcid: "https://orcid.org/0009-0007-1960-1665"
+title: "PyTorch Template with TOML"
+version: 0.1.0
+url: "https://github.com/S1M0N38/pytorch-template"
